@@ -1,0 +1,349 @@
+#!/bin/sh -f
+# Configure wmii
+wmiiscript=wmiirc # For wmii.sh
+. wmii.sh
+
+#xmodmap ~/.Xmodmap
+
+#preload stuff
+
+#nice 19 firefox -v &
+#nice 19 sylpheed --version &
+#nice 19 pidgin -v &
+
+
+# Configuration Variables
+MODKEY=Mod4
+# Bars
+noticetimeout=5
+noticebar=/rbar/!notice
+#Mod1 = Alt
+#Mod4 = "X11 taste"
+#Mod5 = Alt Gr
+#Control = strg/ctrl
+
+UP=Up
+DOWN=Down
+LEFT=Left
+RIGHT=Right
+
+# Colors tuples: "<text> <background> <border>"
+WMII_NORMCOLORS='#657b83 #002b36 #002b36' #eeaa00'
+WMII_SPECIALCOLORS='#839496 #002b36 #002b36' #eeaa00'
+WMII_FOCUSCOLORS='#859900 #002b36 #002b36' #eeaa00'
+#WMII_NORMCOLORS='#ffee00 #000000 #000000' #eeaa00'
+#WMII_SPECIALCOLORS='#bb6600 #000000 #000000' #aa6600'
+#WMII_FOCUSCOLORS='#00dd00 #000000 #000000' #00aa00'
+
+
+WMII_BACKGROUND='#002b36'
+#WMII_FONT='-*-fixed-medium-r-*-*-14-*-*-*-*-*-*-*'
+WMII_FONT='6x13'
+
+set -- $(echo $WMII_NORMCOLORS $WMII_FOCUSCOLORS)
+
+# Menu history
+hist="${WMII_CONFPATH%%:*}/history"
+histnum=5000
+WMII_TERM="xterm -ls"
+
+# Column Rules
+wmiir write /colrules <<!
+/p/ -> 23+75
+/.*/ -> 50+50
+!
+
+# Tagging Rules
+wmiir write /tagrules <<!
+/XMMS.*/ -> ~
+/MPlayer.*/ -> ~
+/liferea.*/ -> l
+/.*Sylpheed.*/ -> s
+/Psi.*/ -> p
+/ding.*/ -> d
+/.*:Firefox.*/ -> www
+/chromium-browser:.*/ -> c
+/anki.*/ -> a
+/Skype.*/ -> y
+/.*/ -> sel
+/.*/ -> 1
+!
+
+export bla="foo"
+
+# Status Bar Info
+status() {
+	echo -n $bla "|" $(date) "|" $(TZ="/usr/share/zoneinfo/America/Los_Angeles" date "+%T %Z") "|" $(cat /sys/class/thermal/thermal_zone0/temp)
+}
+
+local_events() { true;}
+wi_runconf -s wmiirc_local
+
+echo $WMII_NORMCOLORS | wmiir create $noticebar
+
+# Event processing
+events() {
+	cat <<'!'
+# Events
+Event DestroyTag
+	wmiir remove "/lbar/$@"
+Event FocusTag
+	wmiir xwrite "/lbar/$@" "$WMII_FOCUSCOLORS" "$@"
+        echo $@ >> log
+        export bla=$@
+        case $@ in
+          "www") bla="-$bla";;
+        esac
+Event UrgentTag
+	shift
+	wmiir xwrite "/lbar/$@" "*$@"
+Event NotUrgentTag
+	shift
+	wmiir xwrite "/lbar/$@" "$@"
+Event LeftBarClick LeftBarDND
+	shift
+	wmiir xwrite /ctl view "$@"
+Event Unresponsive
+	{
+		client=$1; shift
+		msg="The following client is not responding. What would you like to do?$wi_newline"
+		resp=$(wihack -transient $client \
+			      xmessage -nearmouse -buttons Kill,Wait -print
+			      -fn "${WMII_FONT%%,*}" "$msg $(wmiir read /client/sel/label)")
+		if [ "$resp" = Kill ]; then
+			wmiir xwrite /client/$client/ctl slay &
+		fi
+	}&
+Event Notice
+	wmiir xwrite $noticebar $wi_arg
+
+	kill $xpid 2>/dev/null # Let's hope this isn't reused...
+	{ sleep $noticetimeout; wmiir xwrite $noticebar ' '; }&
+	xpid = $!
+
+# Menus
+Menu Client-3-Delete
+	wmiir xwrite /client/$1/ctl kill
+Menu Client-3-Kill
+	wmiir xwrite /client/$1/ctl slay
+Menu Client-3-Fullscreen
+	wmiir xwrite /client/$1/ctl Fullscreen on
+Event ClientMouseDown
+	wi_fnmenu Client $2 $1 &
+
+Menu LBar-3-Delete
+	tag=$1; clients=$(wmiir read "/tag/$tag/index" | awk '/[^#]/{print $2}')
+	for c in $clients; do
+		if [ "$tag" = "$(wmiir read /client/$c/tags)" ]; then
+			wmiir xwrite /client/$c/ctl kill
+		else
+			wmiir xwrite /client/$c/tags -$tag
+		fi
+		if [ "$tag" = "$(wi_seltag)" ]; then
+			newtag=$(wi_tags | awk -v't='$tag '
+				$1 == t { if(!l) getline l
+					  print l
+					  exit }
+				{ l = $0 }')
+			wmiir xwrite /ctl view $newtag
+		fi
+	done
+# Events
+Event CreateTag
+	case $@ in
+	[0-9])
+		color=$WMII_NORMCOLORS;;
+	*)
+		color=$WMII_SPECIALCOLORS;;
+	esac
+	echo "$color" "$@" | wmiir create "/lbar/$@"
+	wmiir xwrite /tag/sel/ctl colmode sel max
+	case $@ in
+	"d")
+		$WMII_TERM -e ding &;;
+	"www")
+		$WMII_TERM -e firefox &;;
+	"s")
+		$WMII_TERM -e sylpheed-claws &;;
+	"p")
+		$WMII_TERM -e psi &;;
+	"c")
+		$WMII_TERM -e chromium &;;
+	"r")
+		$WMII_TERM -e su -l &;;
+	"h")
+		$WMII_TERM -e htop &;;
+	"a")
+		$WMII_TERM -e anki &;;
+	"y")
+		$WMII_TERM -e myskype &;;
+	esac
+	#eval $WMII_TERM & # mal schauen ob ich das nochmal nutze.
+Event UnfocusTag
+	case $@ in
+	[0-9])
+		color=$WMII_NORMCOLORS;;
+	*)
+		color=$WMII_SPECIALCOLORS;;
+	esac
+	wmiir xwrite "/lbar/$@" "$color" "$@"
+# Actions
+Action exec
+	wmiir xwrite /ctl exec "$@"
+Event LeftBarMouseDown
+	wi_fnmenu LBar "$@" &
+
+# Actions
+Action showkeys
+	echo "$KeysHelp" | xmessage -file - -fn ${WMII_FONT%%,*}
+Action quit
+	wmiir xwrite /ctl quit
+Action rehash
+	wi_proglist $PATH >$progsfile
+Action status
+	set +xv
+	if wmiir remove /rbar/status 2>/dev/null; then
+		sleep 2
+	fi
+	echo "$WMII_NORMCOLORS" | wmiir create /rbar/status
+	while status | wmiir write /rbar/status; do
+		sleep 1
+	done
+
+# Key Bindings
+KeyGroup Moving around
+Key $MODKEY-$LEFT   # Select the client to the left
+	wmiir xwrite /tag/sel/ctl select left
+Key $MODKEY-$RIGHT  # Select the client to the right
+	wmiir xwrite /tag/sel/ctl select right
+Key $MODKEY-$UP     # Select the client above
+	wmiir xwrite /tag/sel/ctl select up
+Key $MODKEY-$DOWN   # Select the client below
+	wmiir xwrite /tag/sel/ctl select down
+
+Key $MODKEY-space   # Toggle between floating and managed layers
+	wmiir xwrite /tag/sel/ctl select toggle
+
+KeyGroup Moving through stacks
+Key $MODKEY-Control-$UP    # Select the stack above
+	wmiir xwrite /tag/sel/ctl select up stack
+Key $MODKEY-Control-$DOWN  # Select the stack below
+	wmiir xwrite /tag/sel/ctl select down stack
+
+KeyGroup Moving clients around
+Key $MODKEY-Shift-$LEFT   # Move selected client to the left
+	wmiir xwrite /tag/sel/ctl send sel left
+Key $MODKEY-Shift-$RIGHT  # Move selected client to the right
+	wmiir xwrite /tag/sel/ctl send sel right
+Key $MODKEY-Shift-$UP     # Move selected client up
+	wmiir xwrite /tag/sel/ctl send sel up
+Key $MODKEY-Shift-$DOWN   # Move selected client down
+	wmiir xwrite /tag/sel/ctl send sel down
+
+Key $MODKEY-Shift-space   # Toggle selected client between floating and managed layers
+	wmiir xwrite /tag/sel/ctl send sel toggle
+
+KeyGroup Client actions
+Key $MODKEY-f # Toggle selected client's fullsceen state
+	wmiir xwrite /client/sel/ctl Fullscreen toggle
+Key $MODKEY-Shift-c # Close client
+	wmiir xwrite /client/sel/ctl kill
+
+KeyGroup Running programs
+Key $MODKEY-F4     # Open wmii actions menu
+	action $(wi_actions | wimenu -h "${hist}.actions" -n $histnum) &
+
+Key $MODKEY-Return # Launch a terminal
+	eval wmiir setsid $WMII_TERM &
+
+KeyGroup Other
+Key $MODKEY-Control-t # Toggle all other key bindings
+	case $(wmiir read /keys | wc -l | tr -d ' \t\n') in
+	0|1)
+		echo -n "$Keys" | wmiir write /keys
+		wmiir xwrite /ctl grabmod $MODKEY;;
+	*)
+		wmiir xwrite /keys $MODKEY-Control-t
+		wmiir xwrite /ctl grabmod Mod3;;
+	esac
+
+KeyGroup Tag actions
+Key $MODKEY-t       # Change to another tag
+	(tag=$(wi_tags | wimenu -h "${hist}.tags" -n 50) && wmiir xwrite /ctl view $tag) &
+Key $MODKEY-Shift-t # Retag the selected client
+	c=$(wi_selclient)
+	(tag=$(wi_tags | wimenu -h "${hist}.tags" -n 50) && wmiir xwrite /client/$c/tags $tag) &
+# Key Bindings
+key Escape
+	echo esc >> log
+Key $MODKEY-x
+	xscreensaver-command -lock
+Key $MODKEY-F1
+	wmiir xwrite /tag/sel/ctl colmode sel default
+Key $MODKEY-F2
+	wmiir xwrite /tag/sel/ctl colmode sel stack
+Key $MODKEY-F3
+	wmiir xwrite /tag/sel/ctl colmode sel max
+Key $MODKEY-End
+	eval $WMII_TERM -e python /home/ema/share/bin/pysh.py &
+Key $MODKEY-w
+	wmiir xwrite /ctl view "www"
+Key $MODKEY-Shift-w
+	wmiir xwrite /client/sel/tags "www"
+	
+!
+	for i in 0 1 2 3 4 5 6 7 8 9 "c" "s" "p" "d" "r" "h" "a" "y"; do
+		cat <<!
+Key $MODKEY-$i		 # Move to the numbered view
+	wmiir xwrite /ctl view "$i"
+Key $MODKEY-Shift-$i     # Retag selected client with the numbered tag
+	wmiir xwrite /client/sel/tags "$i"
+!
+	done
+}
+wi_events events local_events
+
+# WM Configuration
+wmiir write /ctl <<!
+	font $WMII_FONT
+	focuscolors $WMII_FOCUSCOLORS
+	normcolors $WMII_NORMCOLORS
+	grabmod $MODKEY
+	border 2
+!
+#xsetroot -solid "$WMII_BACKGROUND" &
+
+# Misc
+progsfile="$(wmiir namespace)/.proglist"
+action status &
+wi_proglist $PATH >$progsfile &
+
+# Setup Tag Bar
+IFS="$wi_newline"
+wmiir rm $(wmiir ls /lbar | sed 's,^,/lbar/,') >/dev/null
+seltag=$(wmiir read /tag/sel/ctl | sed 1q)
+unset IFS
+wi_tags | while read tag
+do
+	if [ "$tag" = "$seltag" ]; then
+		echo "$WMII_FOCUSCOLORS" "$tag"
+	else
+		echo "$WMII_NORMCOLORS" "$tag"
+	fi | wmiir create "/lbar/$tag"
+done
+
+xrdb ~/.Xresources
+
+killall cpu netw.py redshift tagtimed.pl
+
+eval "$WMII_TERM -e tagebuch" &
+~/Dropbox/prj/wmiistat/cpu &
+netw.py &
+#cpuw.py &
+xscreensaver &
+redshift -l 51.76:11.08 -t 6500K:3700K &
+
+~/cch/TagTime/tagtimed.pl &
+
+wi_eventloop
+
