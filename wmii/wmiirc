@@ -5,13 +5,6 @@ wmiiscript=wmiirc # For wmii.sh
 
 #xmodmap ~/.Xmodmap
 
-#preload stuff
-
-#nice 19 firefox -v &
-#nice 19 sylpheed --version &
-#nice 19 pidgin -v &
-
-
 # Configuration Variables
 MODKEY=Mod4
 # Bars
@@ -55,25 +48,13 @@ wmiir write /colrules <<!
 
 # Tagging Rules
 wmiir write /tagrules <<!
-/XMMS.*/ -> ~
-/MPlayer.*/ -> ~
-/liferea.*/ -> l
-/.*Sylpheed.*/ -> s
-/Psi.*/ -> p
-/ding.*/ -> d
-/.*:Firefox.*/ -> www
-/chromium-browser:.*/ -> c
-/anki.*/ -> a
-/Skype.*/ -> y
 /.*/ -> sel
 /.*/ -> 1
 !
 
-export bla="foo"
-
 # Status Bar Info
 status() {
-	echo -n $bla "|" $(date) "|" $(TZ="/usr/share/zoneinfo/America/Los_Angeles" date "+%T %Z") "|" $(cat /sys/class/thermal/thermal_zone0/temp)
+	echo -n $(date) "|" $(TZ="/usr/share/zoneinfo/America/Los_Angeles" date "+%T %Z")
 }
 
 local_events() { true;}
@@ -159,26 +140,9 @@ Event CreateTag
 	echo "$color" "$@" | wmiir create "/lbar/$@"
 	wmiir xwrite /tag/sel/ctl colmode sel max
 	case $@ in
-	"d")
-		$WMII_TERM -e ding &;;
-	"www")
-		$WMII_TERM -e firefox &;;
-	"s")
-		$WMII_TERM -e sylpheed-claws &;;
-	"p")
-		$WMII_TERM -e psi &;;
-	"c")
-		$WMII_TERM -e chromium &;;
-	"r")
-		$WMII_TERM -e su -l &;;
 	"h")
 		$WMII_TERM -e htop &;;
-	"a")
-		$WMII_TERM -e anki &;;
-	"y")
-		$WMII_TERM -e myskype &;;
 	esac
-	#eval $WMII_TERM & # mal schauen ob ich das nochmal nutze.
 Event UnfocusTag
 	case $@ in
 	[0-9])
@@ -277,19 +241,13 @@ Key $MODKEY-Shift-t # Retag the selected client
 key Escape
 	echo esc >> log
 Key $MODKEY-x
-	xscreensaver-command -lock
+	xscreensaver-command -l
 Key $MODKEY-F1
 	wmiir xwrite /tag/sel/ctl colmode sel default
 Key $MODKEY-F2
 	wmiir xwrite /tag/sel/ctl colmode sel stack
 Key $MODKEY-F3
 	wmiir xwrite /tag/sel/ctl colmode sel max
-Key $MODKEY-End
-	eval $WMII_TERM -e python /home/ema/share/bin/pysh.py &
-Key $MODKEY-w
-	wmiir xwrite /ctl view "www"
-Key $MODKEY-Shift-w
-	wmiir xwrite /client/sel/tags "www"
 	
 !
 	for i in 0 1 2 3 4 5 6 7 8 9 "c" "s" "p" "d" "r" "h" "a" "y"; do
@@ -333,17 +291,7 @@ do
 done
 
 xrdb ~/.Xresources
-
-killall cpu netw.py redshift tagtimed.pl
-
-eval "$WMII_TERM -e tagebuch" &
-~/Dropbox/prj/wmiistat/cpu &
-netw.py &
-#cpuw.py &
-xscreensaver &
-redshift -l 51.76:11.08 -t 6500K:3700K &
-
-~/cch/TagTime/tagtimed.pl &
+xrandr --output HDMI-0 --pos 1920x0
 
 wi_eventloop
 

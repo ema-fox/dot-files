@@ -10,9 +10,13 @@
 (add-hook 'clojure-mode-hook 'undo-tree-mode)
 (add-hook 'clojure-mode-hook 'highlight-80+-mode)
 
-(add-to-list 'load-path "/home/ema//.emacs.d/")
+(add-hook 'python-mode-hook 'highlight-parentheses-mode)
+(add-hook 'python-mode-hook 'undo-tree-mode)
+(add-hook 'python-mode-hook 'highlight-80+-mode)
+
+(add-to-list 'load-path "~/.emacs.d/")
 (require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "/home/ema//.emacs.d//ac-dict")
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
 (ac-config-default)
 
 ;;; This was installed by package-install.el.
@@ -21,8 +25,8 @@
 ;;; Move this code earlier if you want to reference
 ;;; packages in your .emacs.
 (when
-    (load
-     (expand-file-name "~/.emacs.d/elpa/package.el"))
+ ;  (load
+ ;    (expand-file-name "~/.emacs.d/elpa/package.el"))
   (package-initialize)
   (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/")))
 
