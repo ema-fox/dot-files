@@ -241,7 +241,7 @@ Key $MODKEY-Shift-t # Retag the selected client
 key Escape
 	echo esc >> log
 Key $MODKEY-x
-	xscreensaver-command -l
+	gnome-screensaver-command -l
 Key $MODKEY-F1
 	wmiir xwrite /tag/sel/ctl colmode sel default
 Key $MODKEY-F2
