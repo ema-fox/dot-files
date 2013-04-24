@@ -1,0 +1,7 @@
+*.pyc
+\#*\#
+*~
+.coverage
+htmlcov/
+nodecontroller_venv/
+nohup.out
