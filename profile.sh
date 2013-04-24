@@ -30,13 +30,14 @@ timebox() {
 }
 
 
-export HISTSIZE=40000
+export HISTSIZE=400000
+export HISTFILESIZE=400000
 export CLOJURESCRIPT_HOME="$HOME/cch/clojurescript"
 export PATH="$PATH:/usr/libexec/git-core:/home/ema/Dropbox/copy/bin:/usr/lib/xscreensaver:/home/ema/cch/bin:$CLOJURESCRIPT_HOME/bin:/home/ema/.gem/ruby/1.8/bin"
 export BROWSER=browser
 export LANG=en_US.UTF-8
 
-cat ~/Dropbox/txt/notiz
+[[ -s ~/Dropbox/txt/notiz ]] && cat ~/Dropbox/txt/notiz
 
 cd ~/tmp
 
