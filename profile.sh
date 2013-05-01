@@ -17,7 +17,7 @@ alias lc="wc -l"
 alias luser=w
 alias sm="mplayer -shuffle ~/musik/*"
 
-export PS1="\033[0;36m\w \033[0;32m\302\277 \033[0m"
+export PS1="\[$(tput setaf 6)\]\w \[$(tput setaf 2)\]\302\277 \[$(tput sgr0)\]"
 
 fiep() {
   find . -exec grep -H "$1" {} \;
@@ -33,7 +33,7 @@ timebox() {
 export HISTSIZE=400000
 export HISTFILESIZE=400000
 export CLOJURESCRIPT_HOME="$HOME/cch/clojurescript"
-export PATH="$PATH:/usr/libexec/git-core:/home/ema/Dropbox/copy/bin:/usr/lib/xscreensaver:/home/ema/cch/bin:$CLOJURESCRIPT_HOME/bin:/home/ema/.gem/ruby/1.8/bin"
+export PATH="$PATH:/home/ema/.local/bin:/home/ema/Dropbox/copy/bin:/usr/lib/xscreensaver:/home/ema/cch/bin:$CLOJURESCRIPT_HOME/bin:/home/ema/.gem/ruby/1.8/bin"
 export BROWSER=browser
 export LANG=en_US.UTF-8
 

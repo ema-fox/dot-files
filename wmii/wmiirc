@@ -48,6 +48,15 @@ wmiir write /colrules <<!
 
 # Tagging Rules
 wmiir write /tagrules <<!
+/XMMS.*/ -> ~
+/MPlayer.*/ -> ~
+/liferea.*/ -> l
+/.*Sylpheed.*/ -> s
+/Psi.*/ -> p
+/.*:Firefox.*/ -> www
+/chromium-browser:.*/ -> c
+/anki.*/ -> a
+/Skype.*/ -> y
 /.*/ -> sel
 /.*/ -> 1
 !
