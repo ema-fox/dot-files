@@ -5,6 +5,8 @@ wmiiscript=wmiirc # For wmii.sh
 
 #xmodmap ~/.Xmodmap
 
+setxkbmap de nodeadkeys
+
 # Configuration Variables
 MODKEY=Mod4
 # Bars
@@ -48,15 +50,6 @@ wmiir write /colrules <<!
 
 # Tagging Rules
 wmiir write /tagrules <<!
-/XMMS.*/ -> ~
-/MPlayer.*/ -> ~
-/liferea.*/ -> l
-/.*Sylpheed.*/ -> s
-/Psi.*/ -> p
-/.*:Firefox.*/ -> www
-/chromium-browser:.*/ -> c
-/anki.*/ -> a
-/Skype.*/ -> y
 /.*/ -> sel
 /.*/ -> 1
 !

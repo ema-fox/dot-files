@@ -33,7 +33,7 @@ timebox() {
 export HISTSIZE=400000
 export HISTFILESIZE=400000
 export CLOJURESCRIPT_HOME="$HOME/cch/clojurescript"
-export PATH="$PATH:/home/ema/.local/bin:/home/ema/Dropbox/copy/bin:/usr/lib/xscreensaver:/home/ema/cch/bin:$CLOJURESCRIPT_HOME/bin:/home/ema/.gem/ruby/1.8/bin"
+export PATH="$PATH:$HOME/.local/bin"
 export BROWSER=browser
 export LANG=en_US.UTF-8
 
